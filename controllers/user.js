@@ -1,21 +1,25 @@
 const User = require('../models/user');
+const bcrypt = require('bcryptjs');
 
 
+const updateUser = async (req, res) => {
+    const { id } = req.params;
+    if (req.body.password) {
+        const salt = await bcrypt.genSalt(10);
 
-const signupUser = async (req, res) => {
-    const { name, email, password, isAdmin } = req.body;
+        const hashedPassword = await bcrypt.hash(req.body.password, salt);
+
+        req.body.password = hashedPassword;
+    }
+
     try {
-        const existingUser = await User.findOne({ name, email }).exec();
+        const updatedUser = await User.findByIdAndUpdate(id,
+            {
+                $set: req.body
+            },
+            { new: true });
 
-        if (existingUser) {
-            return res.status(409).json('User Already Exists');
-        }
-        const user = await User.create({ name, email, password, isAdmin });
-
-        const token = user.createJWT();
-
-        res.status(201).json({ token, user })
-
+        res.status(200).json(updatedUser);
 
     } catch (error) {
         res.status(500).json(error);
@@ -23,27 +27,13 @@ const signupUser = async (req, res) => {
 }
 
 
-const signinUser = async (req, res) => {
-    const { email, password } = req.body;
+const deleteUser = async (req, res) => {
+    const { id } = req.params;
+
     try {
-        const existingUser = await User.findOne({ email }).exec();
+        await User.findByIdAndDelete(id);
 
-        if (existingUser) {
-
-            const matched = await existingUser.comparePasswords(password);
-
-            if (matched) {
-
-                const token = existingUser.createJWT();
-                res.status(200).json({ token })
-            }
-            else{
-                return res.status(400).json('Passwords does not match')
-            }
-        }
-        else {
-            return res.status(401).json('User does not exist');
-        }
+        res.status(200).json('The use has been deleted successfully');
 
     } catch (error) {
         res.status(500).json(error);
@@ -51,4 +41,31 @@ const signinUser = async (req, res) => {
 }
 
 
-module.exports = { signupUser, signinUser };
+const getUser = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const user = await User.findById(id).exec();
+        res.status(200).json(user);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+}
+
+
+const getAllUsers = async (req, res) => {
+
+    const query = req.query.new;
+    try {
+        const users = query ? await User.find().sort({_id:-1}).limit(5) : await User.find().exec();
+        res.status(200).json(users);
+    } catch (error) {
+        res.status(500).json(error);
+    }
+}
+
+
+
+
+
+module.exports = { updateUser, deleteUser, getUser, getAllUsers }

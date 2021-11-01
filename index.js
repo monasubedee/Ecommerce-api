@@ -1,7 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
-const userRouter = require('./routes/auth');
+const authRouter = require('./routes/auth');
+const userRouter = require('./routes/user');
 
 dotenv.config();
 
@@ -12,7 +13,9 @@ const app = express();
 
 app.use(express.json());
 
+app.use('/api/v1/auth',authRouter);
 app.use('/api/v1/users',userRouter);
+
 
 mongoose.connect(process.env.MONGO_URL)
     .then(() => console.log('Connected to MONGODB'))

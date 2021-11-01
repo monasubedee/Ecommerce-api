@@ -45,8 +45,8 @@ UserModel.methods.createJWT = function () {
 }
 
 UserModel.methods.comparePasswords = async function (newPassword) {
-    const matched = await bcrypt.compare(newPassword, this.password);
-    return matched;
+    const isMatched = await bcrypt.compare(newPassword, this.password);
+    return isMatched;
 }
 
 

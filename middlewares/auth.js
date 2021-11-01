@@ -1,36 +1,55 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const checkAuth = async(req, res, next) => {
-    const header = req.headers.authentication;
-    console.log(header);
+const verifyToken = (req, res, next) => {
+    const header = req.headers.authorization;
 
-    if(header && header.contains('Bearer')){
+    if (header) {
         try {
             const token = header.split(' ')[1];
-            if(token){
-               const authenticated = await jwt.verify(token,process.env.JWT_SECRET);
-               console.log(authenticated);
+            if (token) {
+                const decodedData = jwt.verify(token, process.env.JWT_SECRET);
 
-            //    if(authenticated){
-            //         req.user = 
-            //    }
-            //    else{
-            //        return res.status(403).json('Token is not valid')
-            //    }
+                req.user = decodedData;
+
+                next();
 
             }
-            else{
+            else {
                 return res.status(401).json('Auth failed')
             }
         } catch (error) {
             return res.status(500).json(error);
         }
     }
-    else{
+    else {
         return res.status(401).json('Auth failed')
     }
 }
 
 
-module.exports = { checkAuth };
+const verifyTokenAndAuthorization = (req, res, next) => {
+    verifyToken(req, res, () => {
+        if (req.user.userId === req.params.id || req.user.isAdmin) {
+            next();
+        }
+        else {
+            return res.status(403).json("You are not allowed to do that!")
+        }
+    })
+}
+
+
+const verifyTokenAndAdmin = (req, res, next) => {
+    verifyToken(req, res, () => {
+        if (req.user.isAdmin) {
+            next();
+        }
+        else {
+            return res.status(403).json("You are not allowed to do that!");
+        }
+    })
+}
+
+
+module.exports = { verifyToken, verifyTokenAndAuthorization, verifyTokenAndAdmin };
