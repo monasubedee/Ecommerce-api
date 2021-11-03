@@ -11,7 +11,7 @@ router.put('/:id',verifyTokenAndAuthorization, updateCart);
 
 router.delete('/:id',verifyTokenAndAuthorization,deleteCart);
 
-router.get('/find/:id', verifyTokenAndAdmin,getUserCart);
+router.get('/find/:id', verifyTokenAndAuthorization,getUserCart);
 
 router.get('/', verifyTokenAndAdmin, getAllUserCarts);
 
