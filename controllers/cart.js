@@ -21,7 +21,7 @@ const updateCart = async (req, res) => {
     try {
         const updatedCart = await Cart.findByIdAndUpdate(id, {
             $set: req.body
-        });
+        },{new:true});
         res.status(200).json(updatedCart);
     } catch (error) {
         res.status(500).json(error);
